@@ -4,6 +4,10 @@
 #
 # 30/09/2024
 
+"""
+Try o tabla hash para almacenar las palabras
+Un heap para almacenar los puntajes, que al final se muestren los puntajes por medio del heap
+"""
 import pygame
 import math
 import random
