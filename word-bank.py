@@ -59,3 +59,4 @@ def get_unique_words():
 
 add_words_from_file("test.txt")
 print("Words added:", get_unique_words())
+print(f"Number of collisions: '{n_collisions}'");
