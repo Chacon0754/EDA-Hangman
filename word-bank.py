@@ -2,6 +2,7 @@ MAX_SIZE = 1250
 MAX_WORDS = 1000
 words = [None] * MAX_SIZE
 word_count = 0
+n_collisions = 0
 
 
 # Hashing function using prime multiplication and modulus operator (to limit the
@@ -15,6 +16,7 @@ def hashing(word):
 
 def add_word(word):
     global word_count
+    global n_collisions
     i = 1
     if word_count >= MAX_WORDS:
         print("Maximum unique words reached.")
@@ -30,6 +32,7 @@ def add_word(word):
             return False
         index = (index + i**2) % MAX_SIZE
         i += 1
+        n_collisions += 1
         if index == start_index:
             print("Array is full and cannot accommodate more unique words.")
             return False
