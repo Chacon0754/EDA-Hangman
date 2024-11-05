@@ -1,5 +1,5 @@
-MAX_SIZE = 1250
-MAX_WORDS = 1000
+MAX_SIZE = 120000
+MAX_WORDS = 90000
 words = [None] * MAX_SIZE
 word_count = 0
 n_collisions = 0
@@ -11,6 +11,7 @@ def hashing(word):
     hash_value = 0
     for char in word:
         hash_value = hash_value * 43 + ord(char)
+        # TODO Add linked list
     return hash_value % MAX_SIZE
 
 
@@ -60,6 +61,6 @@ def get_unique_words():
     return [word for word in words if word is not None]
 
 
-add_words_from_file("test.txt")
+add_words_from_file("words.txt")
 print("Words added:", get_unique_words())
 print(f"Number of collisions: '{n_collisions}'");
