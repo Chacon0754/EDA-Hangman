@@ -1,3 +1,13 @@
+from typing import Optional
+
+
+class Node:
+    def __init__(self, word, hint):
+        self.word = word
+        self.hint = hint
+        self.next: Optional[Node] = None
+
+
 MAX_SIZE = 120000
 MAX_WORDS = 90000
 words = [None] * MAX_SIZE
@@ -11,37 +21,41 @@ def hashing(word):
     hash_value = 0
     for char in word:
         hash_value = hash_value * 43 + ord(char)
-        # TODO Add linked list
     return hash_value % MAX_SIZE
 
 
 def add_word(word):
     global word_count
     global n_collisions
-    i = 1
+    hint = "testing"
+
     if word_count >= MAX_WORDS:
         print("Maximum unique words reached.")
         return False
 
     index = hashing(word)
-    start_index = index
 
-    # Collision using quadratic probing
-    while words[index] is not None:
-        if words[index] == word:
-            print(f"'{word}' is already in the array at index {index}.")
-            return False
-        index = (index + i**2) % MAX_SIZE
-        i += 1
+    if words[index] is None:
+        words[index] = Node(word, hint)
+        word_count += 1
+        print(f"'{word}' added at index {index}.")
+        return True
+    else:
+        # Collision using linked lists
+        current = words[index]
         n_collisions += 1
-        if index == start_index:
-            print("Array is full and cannot accommodate more unique words.")
-            return False
+        while current is not None:
+            if current.word == word:
+                print(f"'{word}' is already in the list at index {index}.")
+                return False
+            if current.next is None: 
+                break
+            current = current.next
 
-    words[index] = word
-    word_count += 1
-    print(f"'{word}' added at index {index}.")
-    return True
+        current.next = Node(word, hint)
+        word_count += 1
+        print(f"'{word}' added at index {index} with collision.")
+        return True
 
 
 def add_words_from_file(filename):
@@ -58,9 +72,15 @@ def add_words_from_file(filename):
 
 
 def get_unique_words():
-    return [word for word in words if word is not None]
+    unique_words = []
+    for word_node in words:
+        current = word_node
+        while current is not None:
+            unique_words.append(current.word)
+            current = current.next
+    return unique_words
 
 
 add_words_from_file("words.txt")
 print("Words added:", get_unique_words())
-print(f"Number of collisions: '{n_collisions}'");
+print(f"Number of collisions: '{n_collisions}'")
