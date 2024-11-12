@@ -48,7 +48,7 @@ def add_word(word):
             if current.word == word:
                 print(f"'{word}' is already in the list at index {index}.")
                 return False
-            if current.next is None: 
+            if current.next is None:
                 break
             current = current.next
 
@@ -79,6 +79,18 @@ def get_unique_words():
             unique_words.append(current.word)
             current = current.next
     return unique_words
+
+
+def search_word(word):
+    index = hashing(word)
+    current = words[index]
+
+    # Traverse the linked list
+    while current is not None:
+        if current.word == word:
+            return current
+        current = current.next
+    return f"'{word}' was not found."
 
 
 add_words_from_file("words.txt")
