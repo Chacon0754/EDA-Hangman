@@ -12,6 +12,11 @@ Un heap para almacenar los puntajes, que al final se muestren los puntajes por m
 import pygame
 import math
 import random
+from wordBank import HashTable
+
+# create HashTable
+h_table = HashTable()
+h_table.add_words_from_file("words.txt")
 
 
 # display
