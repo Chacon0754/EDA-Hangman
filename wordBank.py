@@ -81,12 +81,14 @@ class HashTable:
         
 
     def search_word(self, word):
+        word = word.lower()
         index = self.hashing(word)
         current = self.words[index]
 
         # Traverse the linked list
         while current is not None:
             if current.word == word:
+                print(f"HINT: {current.hint}")
                 return current
             current = current.next
         return f"'{word}' was not found."
@@ -102,10 +104,10 @@ class HashTable:
             # If a non-empty index is found, pick the first word
             if current:
                 word, hint = current.word, current.hint
-                self.delte_word(word)
                 return word, hint
             
-    def delte_word(self, word):
+    def delete_word(self, word):
+        word = word.lower()
         index = self.hashing(word)
         current = self.words[index]
         prev = None

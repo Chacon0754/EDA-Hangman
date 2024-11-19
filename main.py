@@ -42,7 +42,7 @@ class HangmanGame:
         result = self.hash_table.get_word()
 
         if isinstance(result, tuple):
-            self.word, self.hint = result
+            self.word, _  = result
             self.word = self.word.upper()
 
             # Calculate new width
@@ -59,7 +59,7 @@ class HangmanGame:
                 self.window = pygame.display.set_mode((self.WIDTH, self.HEIGHT))
                 print(f"Screen width updated to {self.WIDTH, self.HEIGHT}")
 
-            print(f"New word: {self.word} (Hint: {self.hint})")
+            print(f"New word: {self.word}")
         else:
             print("No more words available. Ending game")
             self.running = False
@@ -181,6 +181,14 @@ class HangmanGame:
         pygame.time.delay(3000)
 
     def show_hint(self):
+        hint_node = self.hash_table.search_word(self.word)
+        
+
+        if isinstance(hint_node, str):
+            self.hint = "No hint available for this word."
+        else:
+            self.hint = hint_node.hint
+
         # Calculate window size based on the hint length
         char_width = self.HINT_FONT.size("A")[0]  # Approximate width of one character
         hint_width = len(self.hint) * char_width + 40  # Add padding
@@ -263,7 +271,8 @@ class HangmanGame:
 
             # Check if the game is won or lost
             if all(letter in self.guessed for letter in self.word):
-                self.display_message("You Won!")
+                self.hash_table.delete_word(self.word)
+                self.display_message("You Won")
                 self.reset_game()
             if self.hangman_status == 7:
                 self.display_message("You LOST!!")
