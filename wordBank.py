@@ -1,5 +1,6 @@
 from typing import Optional
 import csv
+import random
 
 
 class Node:
@@ -77,6 +78,7 @@ class HashTable:
                 unique_words.append(current.word)
                 current = current.next
         return unique_words
+        
 
     def search_word(self, word):
         index = self.hashing(word)
@@ -88,5 +90,39 @@ class HashTable:
                 return current
             current = current.next
         return f"'{word}' was not found."
+    
+    def get_word(self):
+        if self.word_count == 0:
+            return "No words available in the table."
+        
+        while True:
+            random_index = random.randint(0, self.MAX_SIZE - 1)
+            current = self.words[random_index]
+
+            # If a non-empty index is found, pick the first word
+            if current:
+                word, hint = current.word, current.hint
+                self.delte_word(word)
+                return word, hint
+            
+    def delte_word(self, word):
+        index = self.hashing(word)
+        current = self.words[index]
+        prev = None
+
+        while current:
+            if current.word == word:
+                if prev:
+                    prev.next = current.next
+                else:
+                    self.words[index] = current.next
+                self.word_count -=1
+                print(f"'{word}' deleted from index {index}")
+                return True
+            prev = current
+            current = current.next
+
+        print(f"'{word}' nor found on the table")
+        return False
 
 
