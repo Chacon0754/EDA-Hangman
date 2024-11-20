@@ -26,6 +26,7 @@ class HangmanGame:
         self.letters = []
         self.word = ""
         self.hint_used = False
+        self.accepting_input = True
 
         # Load assets
         self.load_fonts()
@@ -41,6 +42,13 @@ class HangmanGame:
 
         # Initialize MaxHeap
         self.max_heap = MaxHeap()
+        self.total_scores_heap = MaxHeap()
+
+        # Game counter
+        self.game_number = 1
+
+        # Game total score
+        self.total_score_game = 0
 
     def load_new_word(self):
         result = self.hash_table.get_word()
@@ -195,11 +203,22 @@ class HangmanGame:
 
     def display_message(self, message):
         pygame.time.delay(400)
-        self.window.fill(self.background_color)
-        text = self.WORD_FONT.render(message, 1, (0, 0, 0))
-        self.window.blit(text, (self.WIDTH / 2 - text.get_width(), self.HEIGHT / 2 - text.get_height() / 2))
-        pygame.display.update()
-        pygame.time.delay(500)
+        display_duration = 600
+        start_time = pygame.time.get_ticks()
+        while pygame.time.get_ticks() - start_time < display_duration:
+            self.window.fill(self.background_color)
+            text = self.WORD_FONT.render(message, 1, (0, 0, 0))
+            self.window.blit(text, (self.WIDTH / 2 - text.get_width(), self.HEIGHT / 2 - text.get_height() / 2))
+            pygame.display.update()
+
+            # Process events to handle quit and prevent event queue buildup
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    exit()
+
+            self.clock.tick(self.FPS)
+
 
 
     def show_scores(self):
@@ -209,11 +228,11 @@ class HangmanGame:
 
         # Extract scores from the heap
         scores = []
-        total_score = 0
+        self.total_score_game = 0
         while not self.max_heap.is_empty():
             node = self.max_heap.delete_max()
             scores.append(node)
-            total_score += node.score
+            self.total_score_game += node.score
 
         # Timer variables
         start_ticks = pygame.time.get_ticks()
@@ -276,7 +295,7 @@ class HangmanGame:
 
                 # Render Total score
                 total_y = start_y + len(scores) * line_spacing + 20
-                total_text = self.SCORE_WORD_FONT.render(f"Total score: {total_score} points", True, (0, 0, 0))
+                total_text = self.SCORE_WORD_FONT.render(f"Total score: {self.total_score_game} points", True, (0, 0, 0))
                 pygame.draw.line(self.window, (0, 0, 0), (50, total_y - 10), (self.WIDTH - 50, total_y - 10), 2)
                 self.window.blit(total_text, (50, total_y))
             else:
@@ -297,6 +316,96 @@ class HangmanGame:
             pygame.display.update()
 
         pygame.display.set_caption("Hangman Game")
+
+    def show_total_game_scores(self):
+        pygame.display.set_caption("Total Game Scores")
+        running = True
+
+        # Extract total scores from the heap
+        total_scores = []
+        while not self.total_scores_heap.is_empty():
+            node = self.total_scores_heap.delete_max()
+            total_scores.append(node)
+
+        # Timer variables
+        start_ticks = pygame.time.get_ticks()
+        display_duration = 3000
+
+        # Scroll variables
+        scroll_offset = 0
+        line_spacing = 40
+        if total_scores:
+            total_height = len(total_scores) * line_spacing + 100
+        else:
+            total_height = 100
+
+        max_scroll = max(0, total_height - self.HEIGHT)
+        scrollbar_height = self.HEIGHT * self.HEIGHT / total_height if total_height > 0 else 0
+        scrollbar_x = self.WIDTH - 20
+        scrollbar_y = 0
+        dragging = False
+
+        while running:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    running = False
+                    self.running = False
+                elif event.type == pygame.MOUSEBUTTONDOWN:
+                    # Check if the scrollbar is clicked
+                    mouse_x, mouse_y = event.pos
+                    if scrollbar_x <= mouse_x <= scrollbar_x + 20 and scrollbar_y <= mouse_y <= scrollbar_y + scrollbar_height:
+                        dragging = True
+                elif event.type == pygame.MOUSEBUTTONUP:
+                    dragging = False
+                elif event.type == pygame.MOUSEMOTION and dragging:
+                    # Update scrollbar position
+                    mouse_x, mouse_y = event.pos
+                    scrollbar_y = max(0, min(self.HEIGHT - scrollbar_height, mouse_y))
+                    scroll_offset = (scrollbar_y / (self.HEIGHT - scrollbar_height)) * max_scroll
+                elif event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_ESCAPE:
+                        running = False
+                        self.running = False
+
+            # Check if 3 seconds have passed
+            if pygame.time.get_ticks() - start_ticks >= display_duration:
+                running = False
+                self.running = False
+
+            self.window.fill((255, 255, 255))
+
+            # Render title
+            title_text = self.SCORE_TITILE_FONT.render("Total Games Score", True, (0, 0, 0))
+            self.window.blit(title_text, (self.WIDTH // 2 - title_text.get_width() // 2, 20))
+
+            start_y = 100 - scroll_offset
+
+            if total_scores:
+                # Render total game scores with scroll
+                for i, node in enumerate(total_scores):
+                    score_text = self.SCORE_WORD_FONT.render(f"{i+1}. {node.word}: {node.score} points", True, (0, 0, 0))
+                    self.window.blit(score_text, (50, start_y + i * line_spacing))
+            else:
+                # Display no games played
+                message = "No games played"
+                message_text = self.SCORE_WORD_FONT.render(message, True, (0, 0, 0))
+                message_x = self.WIDTH // 2 - message_text.get_width() // 2
+                message_y = start_y + 50
+                self.window.blit(message_text, (message_x, message_y))
+
+            # Draw scrollbar only if necessary
+            if total_height > self.HEIGHT:
+                # Draw scrollbar background
+                pygame.draw.rect(self.window, (200, 200, 200), (scrollbar_x, 0, 20, self.HEIGHT))
+                # Draw scrollbar handle
+                pygame.draw.rect(self.window, (100, 100, 100), (scrollbar_x, scrollbar_y, 20, scrollbar_height))
+
+            pygame.display.update()
+
+        # After displaying, quit the game
+        pygame.quit()
+        exit()
+
 
     def show_play_again_screen(self):
         pygame.display.set_caption("Play Again")
@@ -335,6 +444,10 @@ class HangmanGame:
                         self.reset_full_game()
                         running = False
                     elif exit_button_rect.collidepoint(mouse_pos):
+                        # Before exiting, save the current game score
+                        self.save_current_game_score()
+                        # Show total game scores
+                        self.show_total_game_scores()
                         # Exit the game
                         running = False
                         self.running = False 
@@ -361,12 +474,24 @@ class HangmanGame:
 
         pygame.display.set_caption("Hangman Game")
 
-    def reset_full_game(self):
+    def save_current_game_score(self):
+        if self.total_score_game > 0:
+            partida_label = f"Partida {self.game_number}"
+            self.total_scores_heap.insert(self.total_score_game, partida_label)
+            self.game_number += 1
+        self.total_score_game = 0 
+
+
+    def reset_full_game(self): 
+        # Save the total score of the current game
+        self.save_current_game_score()
+
         # Reset game variables
         self.hangman_status = 0
         self.guessed = []
         self.hint_used = False
         self.letters = []
+        self.total_score_game = 0
 
         # Reinitialize HashTable
         self.hash_table = HashTable()
@@ -382,6 +507,9 @@ class HangmanGame:
         # Recreate the game window
         self.window = pygame.display.set_mode((self.WIDTH, self.HEIGHT))
         pygame.display.set_caption("Hangman Game")
+
+        # Accept input
+        self.accepting_input = True
 
         # Set running to True to continue the main game loop
         self.running = True
@@ -506,22 +634,26 @@ class HangmanGame:
                         self.running = False
                         pygame.quit()
                         return
-                    elif event.type == pygame.MOUSEBUTTONDOWN:
-                        self.handle_mouse_click(pygame.mouse.get_pos())
-                    elif event.type == pygame.KEYDOWN:
-                        self.handle_key_press(event.key)
+                    elif self.accepting_input:
+                        if event.type == pygame.MOUSEBUTTONDOWN:
+                            self.handle_mouse_click(pygame.mouse.get_pos())
+                        elif event.type == pygame.KEYDOWN:
+                            self.handle_key_press(event.key)
 
                 self.draw()
 
                 # Check if the game is won or lost
                 if all(letter in self.guessed for letter in self.word):
+                    self.accepting_input = False
                     self.hash_table.delete_word(self.word)
                     self.display_message("Loading next word...")
                     score = self.assign_scores()
                     self.max_heap.insert(score, self.word)
                     print(f"Inserted into MaxHeap: score= {score}, word = {self.word}")
                     self.reset_game()
+                    self.accepting_input = True
                 elif self.hangman_status == 7:
+                    self.accepting_input = False
                     self.display_message("You LOST!!")
                     self.show_scores()
                     self.running = False
