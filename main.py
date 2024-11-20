@@ -2,7 +2,7 @@
 # Autores:
 # Martin Eduardo Chacon Orduño - 351840
 # Oscar Joaquin Marquez Ortega - 367726
-#
+# Kevin Alejando Morales Schwartz - 367718
 # 30/09/2024
 
 import pygame
