@@ -89,19 +89,19 @@ class HangmanGame:
         self.background_color = self.images[0].get_at((10, 10))
 
     def assign_scores(self):
-        base_score = 100
-        lenght_bonus = len(self.word) * 10
-        print(f"Len(word) = {len(self.word)}, initial score = {base_score +lenght_bonus}")
+        base_score = 50 
+        length_bonus = len(self.word) * 20
 
-        penalty_per_mistake = 10
-        
-        hint_penalty = 10
+        penalty_per_mistake = 15
+        hint_penalty = 30
 
-        score = base_score + lenght_bonus - (self.hangman_status* penalty_per_mistake)
-        print(f"score = {base_score} + {lenght_bonus} - {self.hangman_status} * {penalty_per_mistake}")
+        score = base_score + length_bonus - (self.hangman_status * penalty_per_mistake)
+
         if self.hint_used:
             score -= hint_penalty
+
         return max(0, score)
+
 
     def create_buttons(self):
         radius = 20
