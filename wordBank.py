@@ -35,7 +35,7 @@ class HashTable:
         if self.words[index] is None:
             self.words[index] = Node(word, hint)
             self.word_count += 1
-            print(f"'{word}' added at index {index}.")
+            # print(f"'{word}' added at index {index}.")
             return True
         else:
             # Collision using linked lists
@@ -51,7 +51,7 @@ class HashTable:
 
             current.next = Node(word, hint)
             self.word_count += 1
-            print(f"'{word}' added at index {index} with collision.")
+            # print(f"'{word}' added at index {index} with collision.")
             return True
 
     def add_words_from_file(self, filename):

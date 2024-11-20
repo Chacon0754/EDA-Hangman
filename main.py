@@ -7,8 +7,15 @@
 
 import pygame
 import math
+import os
+import sys
 from wordBank import HashTable
 from maxHeap import MaxHeap
+
+if getattr(sys, 'frozen', False):
+    base_path = sys._MEIPASS
+else:
+    base_path = os.path.abspath(".")
 
 class HangmanGame:
     def __init__(self):
@@ -34,7 +41,8 @@ class HangmanGame:
 
         # Initialize HashTable
         self.hash_table = HashTable()
-        self.hash_table.add_words_from_file("pistas_ahorcado.csv")
+        csv_path = os.path.join(base_path, 'pistas_ahorcado.csv')
+        self.hash_table.add_words_from_file(csv_path)
         self.load_new_word() 
 
         # Create buttons after loading the word and updating the window size
@@ -88,7 +96,7 @@ class HangmanGame:
     def load_images(self):
         self.images = []
         for i in range(8):
-            img_url = f"img/hangman{i}.png"
+            img_url = os.path.join(base_path, 'img', f'hangman{i}.png')
             image = pygame.image.load(img_url)
             scaled_image = pygame.transform.scale(
                 image, (400, int(image.get_height() * (200 / image.get_width())))
