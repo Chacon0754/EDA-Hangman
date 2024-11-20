@@ -117,21 +117,21 @@ class HangmanGame:
         
         # Add "Get Hint" button
         button_text = "Hint"
-        text_width, text_height = self.BUTTON_FONT.size(button_text)  # Calculate text size
-        button_width = text_width + 10  # Add smaller padding for the width
-        button_height = text_height + 5  # Add smaller padding for the height
+        text_width, text_height = self.BUTTON_FONT.size(button_text)
+        button_width = text_width + 10
+        button_height = text_height + 5
 
-        margin_top = 10  # Top margin below the title
-        margin_right = 10  # Right margin
-        title_height = self.TITLE_FONT.size("HANGMAN")[1]  # Height of the title text
+        margin_top = 10
+        margin_right = 10
+        title_height = self.TITLE_FONT.size("HANGMAN")[1]
         image_top = (self.HEIGHT - self.images[0].get_height()) // 2
 
         # Ensure the button does not overlap with the image
         safe_y_position = min(title_height + margin_top, image_top - button_height - margin_top)
 
         self.hint_button = pygame.Rect(
-            self.WIDTH - button_width - margin_right,  # Align to the right
-            safe_y_position,  # Ensure button is below title and above image
+            self.WIDTH - button_width - margin_right, 
+            safe_y_position,
             button_width,
             button_height
         )
@@ -147,7 +147,7 @@ class HangmanGame:
         self.window.blit(text, (title_x, title_y))
 
         # Draw "Get Hint" button
-        pygame.draw.rect(self.window, (0, 0, 0), self.hint_button, 2)  # Border only (line width = 2)
+        pygame.draw.rect(self.window, (0, 0, 0), self.hint_button, 2)
         button_text = "Hint"
         text = self.BUTTON_FONT.render(button_text, 1, (0, 0, 0))
         self.window.blit(
@@ -163,15 +163,15 @@ class HangmanGame:
         word_width = self.WORD_FONT.size(self.word)[0]
 
         # Margins and spacing
-        word_x = 50  # Left margin for the word
-        word_y = (self.HEIGHT - image_height) // 2  # Align the word vertically with the image
-        image_x = self.WIDTH - image_width - 50  # Right margin for the image
-        image_y = (self.HEIGHT - image_height) // 2  # Center the image vertically
+        word_x = 50
+        word_y = (self.HEIGHT - image_height) // 2
+        image_x = self.WIDTH - image_width - 50
+        image_y = (self.HEIGHT - image_height) // 2
 
         # Adjust vertical centering to account for buttons
-        button_area_height = 100  # Approximate height for the buttons area
+        button_area_height = 100
         if image_y + image_height + button_area_height > self.HEIGHT:
-            image_y = self.HEIGHT - image_height - button_area_height - 20  # Add padding below the image
+            image_y = self.HEIGHT - image_height - button_area_height - 20
 
 
         # Draw hangman image
@@ -201,13 +201,10 @@ class HangmanGame:
         pygame.display.update()
         pygame.time.delay(500)
 
+
     def show_scores(self):
-        score_screen_width = 600
-        score_screen_height = 400
         pygame.display.set_caption("High Scores")
 
-        # Create a new window for scores
-        score_window = pygame.display.set_mode((score_screen_width, score_screen_height))
         running = True
 
         # Extract scores from the heap
@@ -218,15 +215,22 @@ class HangmanGame:
             scores.append(node)
             total_score += node.score
 
+        # Timer variables
+        start_ticks = pygame.time.get_ticks()
+        display_duration = 5000
+
         # Scroll variables
         scroll_offset = 0
         line_spacing = 40
-        total_score_space = 60  # Space needed for Total Score and line
-        total_height = len(scores) * line_spacing + 100 + total_score_space  # Include Total Score in height
-        max_scroll = max(0, total_height - score_screen_height)  # Calculate max scroll amount
+        total_score_space = 60
+        if scores:
+            total_height = len(scores) * line_spacing + 100 + total_score_space
+        else:
+            total_height = 100
 
-        scrollbar_height = score_screen_height * score_screen_height / total_height  # Dynamic size for scrollbar
-        scrollbar_x = score_screen_width - 20
+        max_scroll = max(0, total_height - self.HEIGHT)
+        scrollbar_height = self.HEIGHT * self.HEIGHT / total_height if total_height > 0 else 0
+        scrollbar_x = self.WIDTH - 20
         scrollbar_y = 0
         dragging = False
 
@@ -234,6 +238,7 @@ class HangmanGame:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     running = False
+                    self.running = False
                 elif event.type == pygame.MOUSEBUTTONDOWN:
                     # Check if the scrollbar is clicked
                     mouse_x, mouse_y = event.pos
@@ -244,39 +249,142 @@ class HangmanGame:
                 elif event.type == pygame.MOUSEMOTION and dragging:
                     # Update scrollbar position
                     mouse_x, mouse_y = event.pos
-                    scrollbar_y = max(0, min(score_screen_height - scrollbar_height, mouse_y))
-                    scroll_offset = (scrollbar_y / (score_screen_height - scrollbar_height)) * max_scroll
+                    scrollbar_y = max(0, min(self.HEIGHT - scrollbar_height, mouse_y))
+                    scroll_offset = (scrollbar_y / (self.HEIGHT - scrollbar_height)) * max_scroll
                 elif event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_ESCAPE:
                         running = False
+                        self.running = False
 
-            score_window.fill((255, 255, 255))
+            # Check if seconds have passed
+            if pygame.time.get_ticks() - start_ticks >= display_duration:
+                running = False
+
+            self.window.fill((255, 255, 255))
 
             # Render title
             title_text = self.SCORE_TITILE_FONT.render("High Scores", True, (0, 0, 0))
-            score_window.blit(title_text, (score_screen_width // 2 - title_text.get_width() // 2, 20))
+            self.window.blit(title_text, (self.WIDTH // 2 - title_text.get_width() // 2, 20))
 
-            # Render scores with scroll
             start_y = 100 - scroll_offset
-            for i, node in enumerate(scores):
-                score_text = self.SCORE_WORD_FONT.render(f"{i+1}. {node.word}: {node.score} points", True, (0, 0, 0))
-                score_window.blit(score_text, (50, start_y + i * line_spacing))
 
-            # Render Total score
-            total_y = start_y + len(scores) * line_spacing + 20  # Adjust for Total Score
             if scores:
-                total_text = self.SCORE_WORD_FONT.render(f"Total score: {total_score} points", True, (0, 0, 0))
-                pygame.draw.line(score_window, (0, 0, 0), (50, total_y - 10), (score_screen_width - 50, total_y - 10), 2)
-                score_window.blit(total_text, (50, total_y))
+                # Render scores with scroll
+                for i, node in enumerate(scores):
+                    score_text = self.SCORE_WORD_FONT.render(f"{i+1}. {node.word}: {node.score} points", True, (0, 0, 0))
+                    self.window.blit(score_text, (50, start_y + i * line_spacing))
 
-            # Draw scrollbar background
-            pygame.draw.rect(score_window, (200, 200, 200), (scrollbar_x, 0, 20, score_screen_height))
-            # Draw scrollbar handle
-            pygame.draw.rect(score_window, (100, 100, 100), (scrollbar_x, scrollbar_y, 20, scrollbar_height))
+                # Render Total score
+                total_y = start_y + len(scores) * line_spacing + 20
+                total_text = self.SCORE_WORD_FONT.render(f"Total score: {total_score} points", True, (0, 0, 0))
+                pygame.draw.line(self.window, (0, 0, 0), (50, total_y - 10), (self.WIDTH - 50, total_y - 10), 2)
+                self.window.blit(total_text, (50, total_y))
+            else:
+                # Display no guessed words
+                message = "0 palabras adivinadas"
+                message_text = self.SCORE_WORD_FONT.render(message, True, (0, 0, 0))
+                message_x = self.WIDTH // 2 - message_text.get_width() // 2
+                message_y = start_y + 50 
+                self.window.blit(message_text, (message_x, message_y))
+
+            # Draw scrollbar only if necessary
+            if total_height > self.HEIGHT:
+                # Draw scrollbar background
+                pygame.draw.rect(self.window, (200, 200, 200), (scrollbar_x, 0, 20, self.HEIGHT))
+                # Draw scrollbar handle
+                pygame.draw.rect(self.window, (100, 100, 100), (scrollbar_x, scrollbar_y, 20, scrollbar_height))
 
             pygame.display.update()
 
-        pygame.quit()
+        pygame.display.set_caption("Hangman Game")
+
+    def show_play_again_screen(self):
+        pygame.display.set_caption("Play Again")
+
+        message_font = pygame.font.SysFont("comicsans", 40)
+        button_font = pygame.font.SysFont("comicsans", 30)
+
+        message_text = "Play again?"
+        message_render = message_font.render(message_text, True, (0, 0, 0))
+
+        message_x = self.WIDTH // 2 - message_render.get_width() // 2
+        message_y = 100
+
+        # Create buttons
+        button_width = 100
+        button_height = 50
+        button_gap = 20
+
+        total_buttons_width = button_width * 2 + button_gap
+        start_x = self.WIDTH // 2 - total_buttons_width // 2
+
+        reset_button_rect = pygame.Rect(start_x, 200, button_width, button_height)
+        exit_button_rect = pygame.Rect(start_x + button_width + button_gap, 200, button_width, button_height)
+
+        running = True
+
+        while running:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    running = False
+                    self.running = False
+                elif event.type == pygame.MOUSEBUTTONDOWN:
+                    mouse_pos = pygame.mouse.get_pos()
+                    if reset_button_rect.collidepoint(mouse_pos):
+                        # Reset the game completely
+                        self.reset_full_game()
+                        running = False
+                    elif exit_button_rect.collidepoint(mouse_pos):
+                        # Exit the game
+                        running = False
+                        self.running = False 
+
+            # Drawing code
+            self.window.fill((255, 255, 255))
+            # Draw message
+            self.window.blit(message_render, (message_x, message_y))
+
+            # Draw buttons
+            pygame.draw.rect(self.window, (0, 0, 0), reset_button_rect, 2)
+            reset_text = button_font.render("Reset", True, (0, 0, 0))
+            reset_text_x = reset_button_rect.centerx - reset_text.get_width() // 2
+            reset_text_y = reset_button_rect.centery - reset_text.get_height() // 2
+            self.window.blit(reset_text, (reset_text_x, reset_text_y))
+
+            pygame.draw.rect(self.window, (0, 0, 0), exit_button_rect, 2)
+            exit_text = button_font.render("Exit", True, (0, 0, 0))
+            exit_text_x = exit_button_rect.centerx - exit_text.get_width() // 2
+            exit_text_y = exit_button_rect.centery - exit_text.get_height() // 2
+            self.window.blit(exit_text, (exit_text_x, exit_text_y))
+
+            pygame.display.update()
+
+        pygame.display.set_caption("Hangman Game")
+
+    def reset_full_game(self):
+        # Reset game variables
+        self.hangman_status = 0
+        self.guessed = []
+        self.hint_used = False
+        self.letters = []
+
+        # Reinitialize HashTable
+        self.hash_table = HashTable()
+        self.hash_table.add_words_from_file("pistas_ahorcado.csv")
+
+        # Reinitialize MaxHeap
+        self.max_heap = MaxHeap()
+
+        # Load a new word
+        self.load_new_word()
+        self.create_buttons()
+
+        # Recreate the game window
+        self.window = pygame.display.set_mode((self.WIDTH, self.HEIGHT))
+        pygame.display.set_caption("Hangman Game")
+
+        # Set running to True to continue the main game loop
+        self.running = True
 
     def show_hint(self):
         hint_node = self.hash_table.search_word(self.word)
@@ -287,10 +395,10 @@ class HangmanGame:
             self.hint = hint_node.hint
 
         # Set maximum width for the hint window
-        max_width = 800  # Max width for the hint window
-        char_width = self.HINT_FONT.size("A")[0]  # Approximate width of one character
-        hint_width = min(len(self.hint) * char_width + 40, max_width)  # Cap width at max_width
-        hint_height = 150  # Increased height to include scrollbar
+        max_width = 800
+        char_width = self.HINT_FONT.size("A")[0]
+        hint_width = min(len(self.hint) * char_width + 40, max_width)
+        hint_height = 150
 
         # Create a new window
         hint_window = pygame.display.set_mode((max_width, hint_height))
@@ -298,8 +406,8 @@ class HangmanGame:
 
         # Scrolling variables
         scroll_offset = 0
-        max_scroll = max(0, len(self.hint) * char_width - max_width + 40)  # Calculate max scroll amount
-        scrollbar_width = max_width * max_width / (max_width + max_scroll)  # Dynamic size for the scrollbar
+        max_scroll = max(0, len(self.hint) * char_width - max_width + 40)
+        scrollbar_width = max_width * max_width / (max_width + max_scroll)
         scrollbar_x = 0
         scrollbar_y = hint_height - 20
         dragging = False
@@ -323,7 +431,7 @@ class HangmanGame:
                     scroll_offset = (scrollbar_x / (max_width - scrollbar_width)) * max_scroll
 
             # Clear the window
-            hint_window.fill((255, 255, 255))  # White background
+            hint_window.fill((255, 255, 255))
 
             # Render and display the hint with scrolling
             hint_surface = self.HINT_FONT.render(self.hint, True, (0, 0, 0))
@@ -379,7 +487,7 @@ class HangmanGame:
     def handle_key_press(self, key_pressed):
         if pygame.K_a <= key_pressed <= pygame.K_z:
             ltr = chr(key_pressed).upper()
-            if ltr not in self.guessed:  # Only process unguessed letters
+            if ltr not in self.guessed:
                 self.guessed.append(ltr)
                 for letter in self.letters:
                     if letter[2] == ltr and letter[3]:  
@@ -388,31 +496,41 @@ class HangmanGame:
                             self.hangman_status += 1 
 
     def run(self):
-        while self.running:
-            self.clock.tick(self.FPS)
+        while True:
+            self.running = True
+            while self.running:
+                self.clock.tick(self.FPS)
 
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
+                for event in pygame.event.get():
+                    if event.type == pygame.QUIT:
+                        self.running = False
+                        pygame.quit()
+                        return
+                    elif event.type == pygame.MOUSEBUTTONDOWN:
+                        self.handle_mouse_click(pygame.mouse.get_pos())
+                    elif event.type == pygame.KEYDOWN:
+                        self.handle_key_press(event.key)
+
+                self.draw()
+
+                # Check if the game is won or lost
+                if all(letter in self.guessed for letter in self.word):
+                    self.hash_table.delete_word(self.word)
+                    self.display_message("Loading next word...")
+                    score = self.assign_scores()
+                    self.max_heap.insert(score, self.word)
+                    print(f"Inserted into MaxHeap: score= {score}, word = {self.word}")
+                    self.reset_game()
+                elif self.hangman_status == 7:
+                    self.display_message("You LOST!!")
+                    self.show_scores()
                     self.running = False
-                elif event.type == pygame.MOUSEBUTTONDOWN:
-                    self.handle_mouse_click(pygame.mouse.get_pos())
-                elif event.type == pygame.KEYDOWN:
-                    self.handle_key_press(event.key)
 
-            self.draw()
+            # After the game is over, show play again screen
+            self.show_play_again_screen()
 
-            # Check if the game is won or lost
-            if all(letter in self.guessed for letter in self.word):
-                self.hash_table.delete_word(self.word)
-                self.display_message("Loading next word...")
-                self.assign_scores()
-                score = self.assign_scores()
-                self.max_heap.insert(score, self.word)
-                print(f"Inserted into MaxHeap: score= {score}, word = {self.word}")
-                self.reset_game()
-            if self.hangman_status == 7:
-                self.display_message("You LOST!!")
-                self.show_scores()
+            # If the user chose to exit, break out of the outer loop
+            if not self.running:
                 break
 
         pygame.quit()
