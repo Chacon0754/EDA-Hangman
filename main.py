@@ -227,7 +227,7 @@ class HangmanGame:
             # Draw the texts on the screen
             self.window.blit(text, (text_x, text_y))
             self.window.blit(text2, (text2_x, text2_y))
- 
+                    
             pygame.display.update()
 
             # Process events to handle quit and prevent event queue buildup
@@ -673,7 +673,7 @@ class HangmanGame:
                     self.accepting_input = True
                 elif self.hangman_status == 7:
                     self.accepting_input = False
-                    self.display_message("You LOST!!")
+                    self.display_message("You LOST!!","Loading scores...")
                     self.show_scores()
                     self.running = False
 
