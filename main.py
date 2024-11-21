@@ -209,14 +209,25 @@ class HangmanGame:
 
         pygame.display.update()
 
-    def display_message(self, message):
+    def display_message(self, message, message2):
         pygame.time.delay(400)
-        display_duration = 600
+        display_duration = 1000
         start_time = pygame.time.get_ticks()
         while pygame.time.get_ticks() - start_time < display_duration:
             self.window.fill(self.background_color)
             text = self.WORD_FONT.render(message, 1, (0, 0, 0))
-            self.window.blit(text, (self.WIDTH / 2 - text.get_width(), self.HEIGHT / 2 - text.get_height() / 2))
+            text2 =self.WORD_FONT.render(message2, 1, (0, 0, 0))
+
+            # Calculate positions for the texts
+            text_x = self.WIDTH / 2 - text.get_width() / 2
+            text_y = self.HEIGHT / 2 - text.get_height() / 2
+            text2_x = self.WIDTH / 2 - text2.get_width() / 2
+            text2_y = text_y + text.get_height() + 10 
+
+            # Draw the texts on the screen
+            self.window.blit(text, (text_x, text_y))
+            self.window.blit(text2, (text2_x, text2_y))
+ 
             pygame.display.update()
 
             # Process events to handle quit and prevent event queue buildup
@@ -654,8 +665,8 @@ class HangmanGame:
                 if all(letter in self.guessed for letter in self.word):
                     self.accepting_input = False
                     self.hash_table.delete_word(self.word)
-                    self.display_message("Loading next word...")
                     score = self.assign_scores()
+                    self.display_message("Loading next word...", f"You Won {score} points")
                     self.max_heap.insert(score, self.word)
                     print(f"Inserted into MaxHeap: score= {score}, word = {self.word}")
                     self.reset_game()
